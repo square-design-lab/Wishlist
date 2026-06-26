@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDL Wishlist — Config Generator</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-body: #F5F5F7;
+  --bg-sidebar: #FFFFFF;
+  --text-main: #1C1C1E;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-light: #E5E5E5;
+  --border-hover: #D4D4D4;
+  --border-active: #18181B;
+  --accent: #18181B;
+  --accent-hover: #09090B;
+  --accent-contrast: #FFFFFF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg: 0 20px 40px -12px rgba(0,0,0,0.18);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-width: 400px;
+  --header-height: 60px;
+}
+
+* { box-sizing: border-box; outline: none; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-body);
+  color: var(--text-main);
+  margin: 0; padding: 0;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--header-height);
+}
+.sidebar-header .logo {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.sidebar-header h1 {
+  font-size: 16px; font-weight: 700; margin: 0;
+}
+.sidebar-header .version {
+  font-size: 11px; color: var(--text-tertiary);
+  border: 1px solid var(--border-light); border-radius: 4px;
+  padding: 2px 6px; margin-left: auto;
+}
+
+.sidebar-body {
+  flex: 1; overflow-y: auto; padding: 12px 0;
+}
+
+/* ── accordion sections ──────────────────────────────────────────────── */
+.section { border-bottom: 1px solid var(--border-light); }
+.section-toggle {
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.section-toggle .chevron {
+  transition: transform .2s ease; font-size: 10px; color: var(--text-tertiary);
+}
+.section.open .section-toggle .chevron { transform: rotate(180deg); }
+.section-content {
+  display: none; padding: 4px 20px 16px;
+}
+.section.open .section-content { display: block; }
+
+/* ── fields ──────────────────────────────────────────────────────────── */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 600;
+  margin-bottom: 5px; color: var(--text-main);
+}
+.field input[type="text"],
+.field input[type="number"],
+.field input[type="color"],
+.field select {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: inherit;
+  background: #fff; color: var(--text-main);
+  transition: border-color .15s ease;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--border-active);
+}
+.field .hint {
+  font-size: 11px; color: var(--text-tertiary); margin-top: 4px;
+}
+
+.field-row {
+  display: flex; gap: 10px;
+}
+.field-row .field { flex: 1; }
+
+/* toggle */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.toggle-row label { margin: 0; font-size: 12px; font-weight: 500; }
+.toggle {
+  position: relative; width: 38px; height: 22px;
+  background: #ddd; border-radius: 11px; cursor: pointer;
+  transition: background .2s ease; border: none; padding: 0;
+}
+.toggle::after {
+  content: ''; position: absolute;
+  top: 3px; left: 3px; width: 16px; height: 16px;
+  background: #fff; border-radius: 50%;
+  transition: transform .2s ease;
+}
+.toggle.on { background: var(--accent); }
+.toggle.on::after { transform: translateX(16px); }
+
+/* ── color field ──────────────────────────────────────────────────────── */
+.color-field {
+  display: flex; align-items: center; gap: 8px;
+}
+.color-field input[type="color"] {
+  width: 36px; height: 36px; padding: 2px; border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.color-field input[type="text"] { flex: 1; }
+
+/* ── MAIN PANEL ──────────────────────────────────────────────────────── */
+.main {
+  flex: 1; display: flex; flex-direction: column;
+  background: var(--bg-body); overflow: hidden;
+}
+
+.main-header {
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 24px;
+  min-height: var(--header-height);
+  display: flex; align-items: center;
+  justify-content: space-between;
+}
+.main-header .tabs {
+  display: flex; gap: 4px;
+}
+.tab-btn {
+  padding: 8px 16px; border: none; background: none;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  border-radius: var(--radius-sm); color: var(--text-secondary);
+  transition: all .15s ease;
+}
+.tab-btn:hover { background: var(--bg-body); }
+.tab-btn.active {
+  background: var(--accent); color: var(--accent-contrast);
+}
+
+.copy-code-btn {
+  padding: 8px 18px;
+  background: var(--accent); color: var(--accent-contrast);
+  border: none; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s ease;
+}
+.copy-code-btn:hover { background: var(--accent-hover); }
+
+.main-body {
+  flex: 1; overflow-y: auto; padding: 24px;
+}
+
+/* ── tab panels ──────────────────────────────────────────────────────── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* preview panel */
+.preview-area {
+  max-width: 800px; margin: 0 auto;
+}
+
+.preview-card {
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md); padding: 28px;
+  margin-bottom: 20px;
+}
+.preview-card-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+/* product card preview */
+.preview-product {
+  display: flex; gap: 20px; align-items: flex-start;
+}
+.preview-product-image {
+  width: 120px; height: 120px; background: #f0f0f0;
+  border-radius: var(--radius-sm); position: relative; flex-shrink: 0;
+}
+.preview-product-image .heart-preview {
+  position: absolute; width: 20px; height: 20px;
+  background: rgba(255,255,255,.85); border-radius: 50%; padding: 4px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+.preview-product-image .heart-preview svg { width: 100%; height: 100%; }
+.preview-product-image .heart-preview.top-right { top: 6px; right: 6px; }
+.preview-product-image .heart-preview.top-left { top: 6px; left: 6px; }
+.preview-product-image .heart-preview.bottom-right { bottom: 6px; right: 6px; }
+.preview-product-image .heart-preview.bottom-left { bottom: 6px; left: 6px; }
+
+.preview-product-info { flex: 1; }
+.preview-product-info h3 { margin: 0 0 4px; font-size: 16px; }
+.preview-product-info .price { color: var(--text-secondary); margin-bottom: 12px; }
+
+.preview-pdp-heart {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px; font-size: 13px; color: var(--text-secondary);
+}
+.preview-pdp-heart svg { width: 18px; height: 18px; }
+
+/* wishlist page preview */
+.preview-wishlist-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.preview-wishlist-item { }
+.preview-wishlist-item-img {
+  aspect-ratio: 1; background: #f0f0f0; border-radius: var(--radius-sm);
+  position: relative; margin-bottom: 8px;
+}
+.preview-wishlist-item-img .heart-overlay {
+  position: absolute; top: 6px; right: 6px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.preview-wishlist-item-img .heart-overlay svg { width: 100%; height: 100%; }
+.preview-wishlist-item h4 { margin: 0 0 2px; font-size: 13px; font-weight: 600; }
+.preview-wishlist-item .price { font-size: 12px; color: var(--text-secondary); }
+.preview-wishlist-item-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.preview-wishlist-item-actions button,
+.preview-wishlist-item-actions a {
+  flex: 1; padding: 6px 8px; font-size: 11px; text-align: center;
+  border-radius: 3px; cursor: default; text-decoration: none;
+}
+.preview-add-cart-btn {
+  background: #111; color: #fff; border: none; font-weight: 600;
+}
+.preview-remove-btn {
+  background: none; border: 1px solid #ccc; color: #666;
+}
+.preview-send-btn {
+  display: block; margin: 16px auto 0; padding: 10px 32px;
+  background: #111; color: #fff; border: none; font-size: 12px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  cursor: default;
+}
+
+/* header icon preview */
+.preview-header-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 14px; padding: 10px 16px; background: #fafafa;
+  border-radius: var(--radius-sm); margin-bottom: 16px;
+}
+.preview-header-heart {
+  position: relative; display: inline-flex;
+}
+.preview-header-heart svg { width: 18px; height: 18px; color: inherit; }
+.preview-header-badge {
+  position: absolute; top: -5px; right: -7px;
+  background: #e74c3c; color: #fff; font-size: 9px; font-weight: 700;
+  min-width: 14px; height: 14px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; padding: 0 3px;
+}
+.preview-cart-icon svg { width: 18px; height: 18px; color: inherit; }
+
+/* code output */
+.code-output-section {
+  max-width: 800px; margin: 0 auto;
+}
+.code-notice {
+  background: #FEF3E7; border: 1px solid #F5D0A9;
+  border-radius: var(--radius-md); padding: 14px 18px;
+  margin-bottom: 20px; font-size: 13px; color: #8B5E3C;
+}
+.code-block-wrapper {
+  background: #1C1C1E; border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.code-block-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid #333;
+  font-size: 12px; color: #999;
+}
+.code-block-header button {
+  padding: 5px 12px; background: #333; color: #ddd;
+  border: none; border-radius: 4px; font-size: 12px;
+  cursor: pointer; transition: background .15s ease;
+}
+.code-block-header button:hover { background: #444; }
+.code-block-content {
+  padding: 16px; overflow-x: auto;
+}
+.code-block-content pre {
+  margin: 0; font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; line-height: 1.6; color: #e0e0e0;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* setup guide */
+.guide-section {
+  max-width: 700px; margin: 0 auto;
+}
+.guide-step {
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); padding: 20px 24px;
+  margin-bottom: 12px;
+}
+.guide-step h3 {
+  font-size: 14px; font-weight: 600; margin: 0 0 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.guide-step h3 .step-num {
+  width: 24px; height: 24px; background: var(--accent);
+  color: var(--accent-contrast); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.guide-step p {
+  margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+}
+.guide-step code {
+  background: #f3f3f3; padding: 2px 6px; border-radius: 3px;
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">♡</div>
+    <h1>Wishlist</h1>
+    <span class="version">v1.0</span>
+  </div>
+  <div class="sidebar-body">
+
+    <!-- HEART SETTINGS -->
+    <div class="section open">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Heart Icon <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field">
+          <label>Position on Image</label>
+          <select id="heartPosition" onchange="update()">
+            <option value="top-right">Top Right</option>
+            <option value="top-left">Top Left</option>
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Heart Size (px)</label>
+          <input type="number" id="heartSize" value="22" min="14" max="40" onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Heart Color (Active)</label>
+          <div class="color-field">
+            <input type="color" id="heartColor" value="#e74c3c" onchange="syncColor('heartColor')" />
+            <input type="text" id="heartColorText" value="#e74c3c" onchange="syncColorText('heartColor')" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Heart Outline Color</label>
+          <div class="color-field">
+            <input type="color" id="heartOutlineColor" value="#666666" onchange="syncColor('heartOutlineColor')" />
+            <input type="text" id="heartOutlineColorText" value="#666666" onchange="syncColorText('heartOutlineColor')" />
+          </div>
+        </div>
+        <div class="toggle-row">
+          <label>Show on Store Page</label>
+          <button class="toggle on" id="showOnStorePage" onclick="toggleBtn(this)"></button>
+        </div>
+        <div class="toggle-row">
+          <label>Show on Product Page</label>
+          <button class="toggle on" id="showOnProductPage" onclick="toggleBtn(this)"></button>
+        </div>
+        <div class="toggle-row">
+          <label>Header Heart Icon</label>
+          <button class="toggle on" id="headerIcon" onclick="toggleBtn(this)"></button>
+        </div>
+        <div class="field" id="headerPositionField">
+          <label>Header Icon Position</label>
+          <select id="headerIconPosition" onchange="update()">
+            <option value="before-cart">Before Cart Icon</option>
+            <option value="after-cart">After Cart Icon</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- WISHLIST PAGE -->
+    <div class="section open">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Wishlist Page <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field">
+          <label>Wishlist Page URL Slug</label>
+          <input type="text" id="wishlistPageSlug" value="/wishlist" onchange="update()" />
+          <div class="hint">Create a blank page in Squarespace with this URL slug.</div>
+        </div>
+        <div class="field">
+          <label>Wishlist Title</label>
+          <input type="text" id="wishlistTitle" value="Wishlist" onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Empty Message</label>
+          <input type="text" id="emptyMessage" value="Your wishlist is empty." onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Continue Shopping Label</label>
+          <input type="text" id="emptyBrowseLabel" value="Continue Shopping" onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Continue Shopping Link</label>
+          <input type="text" id="emptyBrowseLink" value="/store" onchange="update()" />
+        </div>
+        <div class="toggle-row">
+          <label>Show Add to Cart button</label>
+          <button class="toggle on" id="addToCartFromWishlist" onclick="toggleBtn(this)"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTON LABELS -->
+    <div class="section">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Button Labels <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field">
+          <label>Send Wishlist Button</label>
+          <input type="text" id="sendWishlistLabel" value="Send Wishlist" onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Add to Cart Button</label>
+          <input type="text" id="addToCartLabel" value="Add to Cart" onchange="update()" />
+        </div>
+        <div class="field">
+          <label>Remove Button</label>
+          <input type="text" id="removeLabel" value="Remove" onchange="update()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG FILTERING -->
+    <div class="section">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Tag Filtering <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="toggle-row">
+          <label>Filter by product tag</label>
+          <button class="toggle" id="filterByTag" onclick="toggleBtn(this)"></button>
+        </div>
+        <div class="field" id="tagField" style="display:none">
+          <label>Tag Name</label>
+          <input type="text" id="enquiryTag" value="wishlist" onchange="update()" />
+          <div class="hint">Only products with this tag will show the heart icon.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM SETTINGS -->
+    <div class="section">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Form Settings <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field">
+          <label>Form Field Name</label>
+          <input type="text" id="fieldName" value="Wishlist" onchange="update()" />
+          <div class="hint">Must match the textarea label in your Squarespace form block.</div>
+        </div>
+        <div class="toggle-row">
+          <label>Include prices in form</label>
+          <button class="toggle on" id="includePrices" onclick="toggleBtn(this)"></button>
+        </div>
+        <div class="toggle-row">
+          <label>Include product URLs</label>
+          <button class="toggle on" id="includeProductUrl" onclick="toggleBtn(this)"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL FORMAT LABELS -->
+    <div class="section">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Email Format Labels <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field-row">
+          <div class="field">
+            <label>Item</label>
+            <input type="text" id="labelItem" value="Item" onchange="update()" />
+          </div>
+          <div class="field">
+            <label>Title</label>
+            <input type="text" id="labelTitle" value="Title" onchange="update()" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Price</label>
+            <input type="text" id="labelPrice" value="Price" onchange="update()" />
+          </div>
+          <div class="field">
+            <label>Summary Text</label>
+            <input type="text" id="summaryText" value="Wishlist contains" onchange="update()" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="section">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        Advanced <span class="chevron">▼</span>
+      </button>
+      <div class="section-content">
+        <div class="field">
+          <label>Execution Delay (ms)</label>
+          <input type="number" id="executionDelay" value="500" min="0" max="5000" step="100" onchange="update()" />
+          <div class="hint">Delay before the plugin initialises. Increase if elements aren't ready.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<div class="main">
+  <div class="main-header">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('preview', this)">Preview</button>
+      <button class="tab-btn" onclick="switchTab('code', this)">Code Output</button>
+      <button class="tab-btn" onclick="switchTab('guide', this)">Setup Guide</button>
+    </div>
+    <button class="copy-code-btn" onclick="copyCode()">Copy Code</button>
+  </div>
+  <div class="main-body">
+
+    <!-- PREVIEW -->
+    <div id="panel-preview" class="tab-panel active">
+      <div class="preview-area">
+
+        <div class="preview-card">
+          <div class="preview-card-label">HEADER ICON</div>
+          <div class="preview-header-bar">
+            <div class="preview-header-heart" id="previewHeaderHeart">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span class="preview-header-badge">3</span>
+            </div>
+            <div class="preview-cart-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-card-label">STORE PAGE — PRODUCT CARD</div>
+          <div class="preview-product">
+            <div class="preview-product-image">
+              <div class="heart-preview top-right" id="previewStoreHeart" style="color:#e74c3c">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+            </div>
+            <div class="preview-product-info">
+              <h3>Sample Product</h3>
+              <div class="price">$149.00</div>
+              <div class="preview-pdp-heart" id="previewPdpHeart">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#666"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span style="text-decoration:underline">Add to Wishlist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-card-label">WISHLIST PAGE</div>
+          <div id="previewWishlistTitle" style="font-size:20px;font-weight:700;margin-bottom:4px;">Wishlist</div>
+          <div style="font-size:12px;color:#888;margin-bottom:14px;">3 items</div>
+          <div class="preview-wishlist-grid" id="previewWishlistGrid">
+            <div class="preview-wishlist-item">
+              <div class="preview-wishlist-item-img">
+                <div class="heart-overlay" style="color:#e74c3c">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+              </div>
+              <h4>Sample Product</h4>
+              <div class="price">$149.00</div>
+              <div class="preview-wishlist-item-actions">
+                <button class="preview-add-cart-btn" id="previewAddCartBtn1">ADD TO CART</button>
+                <button class="preview-remove-btn" id="previewRemoveBtn1">REMOVE</button>
+              </div>
+            </div>
+            <div class="preview-wishlist-item">
+              <div class="preview-wishlist-item-img">
+                <div class="heart-overlay" style="color:#e74c3c">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+              </div>
+              <h4>Another Item</h4>
+              <div class="price">$89.00</div>
+              <div class="preview-wishlist-item-actions">
+                <button class="preview-add-cart-btn">ADD TO CART</button>
+                <button class="preview-remove-btn">REMOVE</button>
+              </div>
+            </div>
+            <div class="preview-wishlist-item">
+              <div class="preview-wishlist-item-img">
+                <div class="heart-overlay" style="color:#e74c3c">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+              </div>
+              <h4>Third Product</h4>
+              <div class="price">$59.00</div>
+              <div class="preview-wishlist-item-actions">
+                <button class="preview-add-cart-btn">ADD TO CART</button>
+                <button class="preview-remove-btn">REMOVE</button>
+              </div>
+            </div>
+          </div>
+          <button class="preview-send-btn" id="previewSendBtn">SEND WISHLIST</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CODE OUTPUT -->
+    <div id="panel-code" class="tab-panel">
+      <div class="code-output-section">
+        <div class="code-notice">
+          <strong>Installation:</strong> Copy the code below and paste it into <em>Settings → Advanced → Code Injection → Header</em>. See the <strong>Setup Guide</strong> tab for full instructions.
+        </div>
+        <div class="code-block-wrapper">
+          <div class="code-block-header">
+            <span>Code Injection (Settings → Advanced → Code Injection → Header)</span>
+            <button onclick="copyCode()">Copy</button>
+          </div>
+          <div class="code-block-content">
+            <pre id="codeOutput"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP GUIDE -->
+    <div id="panel-guide" class="tab-panel">
+      <div class="guide-section">
+        <div class="guide-step">
+          <h3><span class="step-num">1</span> Create Wishlist Page</h3>
+          <p>In Squarespace, go to <strong>Pages → + → Blank Page</strong>. Set the URL slug to <code>/wishlist</code> (or your chosen slug). Add a <strong>Code Block</strong> to the page — the plugin will inject the wishlist content inside it.</p>
+        </div>
+        <div class="guide-step">
+          <h3><span class="step-num">2</span> Add a Form Block</h3>
+          <p>Add a <strong>Form Block</strong> to your site footer (so it's available on all pages). Add a <strong>textarea</strong> field and set its label to match the <em>Form Field Name</em> in your config (default: <code>Wishlist</code>). Set the form to open in a <strong>Lightbox</strong>. The plugin will auto-fill this field when users click "Send Wishlist".</p>
+        </div>
+        <div class="guide-step">
+          <h3><span class="step-num">3</span> Configure the Plugin</h3>
+          <p>Use the options on the left to customise the heart icon appearance, wishlist page labels, and form settings. The preview on the right updates in real time.</p>
+        </div>
+        <div class="guide-step">
+          <h3><span class="step-num">4</span> Copy & Paste Code</h3>
+          <p>Go to the <strong>Code Output</strong> tab and copy the generated code. In Squarespace, go to <strong>Settings → Advanced → Code Injection → Header</strong> and paste the code.</p>
+        </div>
+        <div class="guide-step">
+          <h3><span class="step-num">5</span> How It Works</h3>
+          <p>Heart icons appear on product images in the store page and on product detail pages. Clicking a heart adds the product to the wishlist (stored in the visitor's browser). The header heart icon shows a badge count and links to the wishlist page. On the wishlist page, users can view saved items, add them to cart, remove them, or send the entire wishlist to you via the popup form.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleSection(btn) {
+  btn.closest('.section').classList.toggle('open');
+}
+
+function toggleBtn(btn) {
+  btn.classList.toggle('on');
+  update();
+}
+
+function isOn(id) {
+  return document.getElementById(id).classList.contains('on');
+}
+
+function val(id) {
+  return document.getElementById(id).value;
+}
+
+function syncColor(id) {
+  var c = document.getElementById(id).value;
+  document.getElementById(id + 'Text').value = c;
+  update();
+}
+
+function syncColorText(id) {
+  var c = document.getElementById(id + 'Text').value;
+  document.getElementById(id).value = c;
+  update();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'code') generateCode();
+}
+
+function copyCode() {
+  generateCode();
+  var code = document.getElementById('codeOutput').textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.querySelector('.copy-code-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy Code'; }, 1500);
+  });
+}
+
+function update() {
+  updatePreview();
+  generateCode();
+
+  // conditional visibility
+  document.getElementById('headerPositionField').style.display = isOn('headerIcon') ? '' : 'none';
+  document.getElementById('tagField').style.display = isOn('filterByTag') ? '' : 'none';
+}
+
+function updatePreview() {
+  var heartColor = val('heartColor');
+  var outlineColor = val('heartOutlineColor');
+  var pos = val('heartPosition');
+
+  // store heart position
+  var storeHeart = document.getElementById('previewStoreHeart');
+  storeHeart.className = 'heart-preview ' + pos;
+  storeHeart.style.color = heartColor;
+
+  // pdp heart
+  var pdpHeart = document.getElementById('previewPdpHeart');
+  pdpHeart.querySelector('svg').style.color = outlineColor;
+
+  // header icon
+  document.getElementById('previewHeaderHeart').style.display = isOn('headerIcon') ? '' : 'none';
+
+  // wishlist title
+  document.getElementById('previewWishlistTitle').textContent = val('wishlistTitle');
+
+  // button labels
+  document.querySelectorAll('.preview-add-cart-btn').forEach(function(b) {
+    b.textContent = val('addToCartLabel').toUpperCase();
+    b.style.display = isOn('addToCartFromWishlist') ? '' : 'none';
+  });
+  document.querySelectorAll('.preview-remove-btn').forEach(function(b) {
+    b.textContent = val('removeLabel').toUpperCase();
+  });
+  document.getElementById('previewSendBtn').textContent = val('sendWishlistLabel').toUpperCase();
+
+  // heart overlays in wishlist grid
+  document.querySelectorAll('.preview-wishlist-item-img .heart-overlay').forEach(function(h) {
+    h.style.color = heartColor;
+  });
+}
+
+function generateCode() {
+  var fields = [
+    { key: 'wishlistPageSlug', id: 'wishlistPageSlug', def: '/wishlist' },
+    { key: 'heartPosition', id: 'heartPosition', def: 'top-right' },
+    { key: 'heartSize', id: 'heartSize', def: '22', num: true },
+    { key: 'heartColor', id: 'heartColor', def: '#e74c3c' },
+    { key: 'heartOutlineColor', id: 'heartOutlineColor', def: '#666666' },
+    { key: 'showOnStorePage', id: 'showOnStorePage', toggle: true, def: true },
+    { key: 'showOnProductPage', id: 'showOnProductPage', toggle: true, def: true },
+    { key: 'addToCartFromWishlist', id: 'addToCartFromWishlist', toggle: true, def: true },
+    { key: 'sendWishlistLabel', id: 'sendWishlistLabel', def: 'Send Wishlist' },
+    { key: 'addToCartLabel', id: 'addToCartLabel', def: 'Add to Cart' },
+    { key: 'removeLabel', id: 'removeLabel', def: 'Remove' },
+    { key: 'emptyMessage', id: 'emptyMessage', def: 'Your wishlist is empty.' },
+    { key: 'emptyBrowseLabel', id: 'emptyBrowseLabel', def: 'Continue Shopping' },
+    { key: 'emptyBrowseLink', id: 'emptyBrowseLink', def: '/store' },
+    { key: 'wishlistTitle', id: 'wishlistTitle', def: 'Wishlist' },
+    { key: 'headerIcon', id: 'headerIcon', toggle: true, def: true },
+    { key: 'headerIconPosition', id: 'headerIconPosition', def: 'before-cart' },
+    { key: 'fieldName', id: 'fieldName', def: 'Wishlist' },
+    { key: 'includePrices', id: 'includePrices', toggle: true, def: true },
+    { key: 'includeProductUrl', id: 'includeProductUrl', toggle: true, def: true },
+    { key: 'labelItem', id: 'labelItem', def: 'Item' },
+    { key: 'labelTitle', id: 'labelTitle', def: 'Title' },
+    { key: 'labelPrice', id: 'labelPrice', def: 'Price' },
+    { key: 'summaryText', id: 'summaryText', def: 'Wishlist contains' },
+    { key: 'filterByTag', id: 'filterByTag', toggle: true, def: false },
+    { key: 'enquiryTag', id: 'enquiryTag', def: 'wishlist' },
+    { key: 'executionDelay', id: 'executionDelay', def: '500', num: true }
+  ];
+
+  var lines = [];
+  lines.push('<script>');
+  lines.push('window.SDL_WISHLIST_CONFIG = {');
+
+  fields.forEach(function(f, i) {
+    var v;
+    if (f.toggle) {
+      v = isOn(f.id);
+    } else if (f.num) {
+      v = parseInt(val(f.id), 10);
+    } else {
+      v = val(f.id);
+    }
+
+    var valStr;
+    if (typeof v === 'boolean') {
+      valStr = v ? 'true' : 'false';
+    } else if (typeof v === 'number') {
+      valStr = v;
+    } else {
+      valStr = '"' + v.replace(/"/g, '\\"') + '"';
+    }
+
+    var comma = i < fields.length - 1 ? ',' : '';
+    lines.push('  "' + f.key + '": ' + valStr + comma);
+  });
+
+  lines.push('};');
+  lines.push('<\/script>');
+  lines.push('');
+  lines.push('<script src="https://cdn.jsdelivr.net/gh/square-design-lab/Wishlist@latest/wishlist.min.js"><\/script>');
+  lines.push('<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/square-design-lab/Wishlist@latest/wishlist.min.css">');
+
+  document.getElementById('codeOutput').textContent = lines.join('\n');
+}
+
+// init
+update();
+</script>
+
+</body>
+</html>

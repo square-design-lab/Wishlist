@@ -2,51 +2,52 @@
 
 /* ── heart button (shared) ─────────────────────────────────────────── */
 .sdl-wishlist-heart {
-  background: none;
-  border: none;
+  background: none !important;
+  border: none !important;
   cursor: pointer;
   padding: 0;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: transform .2s ease, color .2s ease;
   z-index: 10;
   line-height: 1;
+  box-sizing: content-box !important;
 }
 .sdl-wishlist-heart:hover { transform: scale(1.15); }
-.sdl-wishlist-heart svg { width: 100%; height: 100%; }
+.sdl-wishlist-heart svg { width: 100%; height: 100%; pointer-events: none; }
 
 /* ── store page: heart overlay on images ───────────────────────────── */
 .sdl-wishlist-heart--top-right {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
 }
 .sdl-wishlist-heart--top-left {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
 }
 .sdl-wishlist-heart--bottom-right {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
+  position: absolute !important;
+  bottom: 10px !important;
+  right: 10px !important;
 }
 .sdl-wishlist-heart--bottom-left {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
+  position: absolute !important;
+  bottom: 10px !important;
+  left: 10px !important;
 }
 
-/* optional backdrop circle behind heart for contrast */
+/* backdrop circle behind heart for contrast */
 .sdl-wishlist-heart--top-right,
 .sdl-wishlist-heart--top-left,
 .sdl-wishlist-heart--bottom-right,
 .sdl-wishlist-heart--bottom-left {
-  background: rgba(255,255,255,0.85);
-  border-radius: 50%;
-  padding: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.85) !important;
+  border-radius: 50% !important;
+  padding: 10px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
 }
 
 /* ── product detail page heart ─────────────────────────────────────── */

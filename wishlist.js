@@ -139,9 +139,37 @@
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
+  /* ── document-level event interceptor for hearts ────────────────── */
+  function setupHeartInterceptor() {
+    if (window.__sdlWishlistInterceptor) return;
+    window.__sdlWishlistInterceptor = true;
+
+    function handleHeartEvent(e) {
+      var heart = e.target.closest(".sdl-wishlist-heart[data-product]");
+      if (!heart) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      if (e.type === "click") {
+        var data = JSON.parse(heart.getAttribute("data-product"));
+        toggleWishlist(data);
+        updateHeartState(heart, data.url);
+        setTimeout(updateAllHearts, 50);
+        setTimeout(updateAllHearts, 300);
+      }
+    }
+
+    ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "touchstart", "touchend"].forEach(function (evt) {
+      document.addEventListener(evt, handleHeartEvent, true);
+    });
+  }
+
   /* ── store page: hearts on product images ───────────────────────── */
   function setupStorePageHearts() {
     if (!cfg("showOnStorePage")) return;
+    setupHeartInterceptor();
+
     var items = document.querySelectorAll(S.productListItem);
     items.forEach(function (item) {
       if (item.querySelector(".sdl-wishlist-heart")) return;
@@ -170,14 +198,8 @@
 
       var btn = createHeartBtn(fullUrl, cfg("heartSize"));
       btn.setAttribute("data-url", fullUrl);
+      btn.setAttribute("data-product", JSON.stringify({ url: fullUrl, title: title, price: price, image: image }));
       btn.classList.add("sdl-wishlist-heart--" + pos);
-
-      btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleWishlist({ url: fullUrl, title: title, price: price, image: image });
-        updateHeartState(btn, fullUrl);
-      });
 
       imageWrapper.appendChild(btn);
     });
@@ -256,17 +278,24 @@
     badge.textContent = "0";
     container.appendChild(badge);
 
-    var cartLink = document.querySelector(S.cartIcon);
-    if (!cartLink) {
-      cartLink = document.querySelector("a[href='/cart'], .header-actions-action--cart");
+    var cartAction = null;
+    var desktopWrap = document.querySelector(".header-actions--right .showOnDesktop");
+    if (desktopWrap) cartAction = desktopWrap.querySelector(".header-actions-action--cart");
+    if (!cartAction) {
+      var candidates = document.querySelectorAll(".header-actions-action--cart");
+      for (var i = 0; i < candidates.length; i++) {
+        if (candidates[i].offsetParent !== null) { cartAction = candidates[i]; break; }
+      }
     }
+    if (!cartAction) cartAction = document.querySelector(S.cartIcon);
+    if (!cartAction) cartAction = document.querySelector("a[href='/cart']");
 
-    if (cartLink) {
-      var parent = cartLink.parentElement;
+    if (cartAction) {
+      var parent = cartAction.parentElement;
       if (cfg("headerIconPosition") === "before-cart") {
-        parent.insertBefore(container, cartLink);
+        parent.insertBefore(container, cartAction);
       } else {
-        parent.insertBefore(container, cartLink.nextSibling);
+        parent.insertBefore(container, cartAction.nextSibling);
       }
     } else {
       var header = document.querySelector(".header-actions, .Header-nav--right, header nav");

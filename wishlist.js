@@ -23,7 +23,7 @@
     wishlistTitle: "WISHLIST",
     headerIcon: true,
     headerIconPosition: "before-cart",
-    headerIconType: "text",
+    headerIconType: "icon",
     headerIconText: "Wishlist",
     fieldName: "Wishlist",
     includePrices: true,

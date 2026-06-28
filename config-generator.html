@@ -377,7 +377,7 @@ body {
   <div class="sidebar-header">
     <div class="logo">♡</div>
     <h1>Wishlist</h1>
-    <span class="version">v1.0</span>
+    <span class="version">v1.1</span>
   </div>
   <div class="sidebar-body">
 
@@ -423,15 +423,29 @@ body {
           <button class="toggle on" id="showOnProductPage" onclick="toggleBtn(this)"></button>
         </div>
         <div class="toggle-row">
-          <label>Header Heart Icon</label>
+          <label>Show in Site Header</label>
           <button class="toggle on" id="headerIcon" onclick="toggleBtn(this)"></button>
         </div>
-        <div class="field" id="headerPositionField">
-          <label>Header Icon Position</label>
-          <select id="headerIconPosition" onchange="update()">
-            <option value="before-cart">Before Cart Icon</option>
-            <option value="after-cart">After Cart Icon</option>
-          </select>
+        <div id="headerIconFields" style="">
+          <div class="field">
+            <label>Header Display</label>
+            <select id="headerIconType" onchange="update()">
+              <option value="icon">Heart Icon</option>
+              <option value="text">Text Link</option>
+            </select>
+          </div>
+          <div class="field" id="headerIconTextField" style="display:none">
+            <label>Header Text</label>
+            <input type="text" id="headerIconText" value="Wishlist" onchange="update()" />
+            <div class="hint">Displays as "Wishlist (2)" with item count.</div>
+          </div>
+          <div class="field">
+            <label>Position</label>
+            <select id="headerIconPosition" onchange="update()">
+              <option value="before-cart">Before Cart Icon</option>
+              <option value="after-cart">After Cart Icon</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -595,11 +609,12 @@ body {
 
         <div class="preview-card">
           <div class="preview-card-label">HEADER ICON</div>
-          <div class="preview-header-bar">
+          <div class="preview-header-bar" id="previewHeaderBar">
             <div class="preview-header-heart" id="previewHeaderHeart">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
               <span class="preview-header-badge">3</span>
             </div>
+            <span class="preview-header-text" id="previewHeaderText" style="display:none;font-size:13px;color:inherit;">Wishlist (3)</span>
             <div class="preview-cart-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             </div>
@@ -776,7 +791,8 @@ function update() {
   generateCode();
 
   // conditional visibility
-  document.getElementById('headerPositionField').style.display = isOn('headerIcon') ? '' : 'none';
+  document.getElementById('headerIconFields').style.display = isOn('headerIcon') ? '' : 'none';
+  document.getElementById('headerIconTextField').style.display = val('headerIconType') === 'text' ? '' : 'none';
   document.getElementById('tagField').style.display = isOn('filterByTag') ? '' : 'none';
 }
 
@@ -794,8 +810,15 @@ function updatePreview() {
   var pdpHeart = document.getElementById('previewPdpHeart');
   pdpHeart.querySelector('svg').style.color = outlineColor;
 
-  // header icon
-  document.getElementById('previewHeaderHeart').style.display = isOn('headerIcon') ? '' : 'none';
+  // header icon / text
+  var headerVisible = isOn('headerIcon');
+  var isTextMode = val('headerIconType') === 'text';
+  document.getElementById('previewHeaderHeart').style.display = headerVisible && !isTextMode ? '' : 'none';
+  var headerText = document.getElementById('previewHeaderText');
+  headerText.style.display = headerVisible && isTextMode ? '' : 'none';
+  if (isTextMode) {
+    headerText.textContent = val('headerIconText') + ' (3)';
+  }
 
   // wishlist title
   document.getElementById('previewWishlistTitle').textContent = val('wishlistTitle');
@@ -834,6 +857,8 @@ function generateCode() {
     { key: 'emptyBrowseLink', id: 'emptyBrowseLink', def: '/store' },
     { key: 'wishlistTitle', id: 'wishlistTitle', def: 'Wishlist' },
     { key: 'headerIcon', id: 'headerIcon', toggle: true, def: true },
+    { key: 'headerIconType', id: 'headerIconType', def: 'icon' },
+    { key: 'headerIconText', id: 'headerIconText', def: 'Wishlist' },
     { key: 'headerIconPosition', id: 'headerIconPosition', def: 'before-cart' },
     { key: 'fieldName', id: 'fieldName', def: 'Wishlist' },
     { key: 'includePrices', id: 'includePrices', toggle: true, def: true },

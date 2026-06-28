@@ -531,7 +531,7 @@ body {
       <div class="section-content">
         <div class="field">
           <label>Form Page URL</label>
-          <input type="text" id="formPageUrl" value="" placeholder="/wishlist-form" onchange="update()" />
+          <input type="text" id="formPageUrl" value="/wishlist-form" onchange="update()" />
           <div class="hint">URL of a page containing your enquiry form. The form will open in a popup. Leave empty to use the footer lightbox approach instead.</div>
         </div>
         <div class="field">
@@ -865,7 +865,7 @@ function generateCode() {
     { key: 'headerIconType', id: 'headerIconType', def: 'icon' },
     { key: 'headerIconText', id: 'headerIconText', def: 'Wishlist' },
     { key: 'headerIconPosition', id: 'headerIconPosition', def: 'before-cart' },
-    { key: 'formPageUrl', id: 'formPageUrl', def: '' },
+    { key: 'formPageUrl', id: 'formPageUrl', def: '/wishlist-form' },
     { key: 'fieldName', id: 'fieldName', def: 'Wishlist' },
     { key: 'includePrices', id: 'includePrices', toggle: true, def: true },
     { key: 'includeProductUrl', id: 'includeProductUrl', toggle: true, def: true },

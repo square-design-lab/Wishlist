@@ -50,21 +50,29 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.12) !important;
 }
 
-/* ── product detail page heart ─────────────────────────────────────── */
-.sdl-wishlist-heart-pdp {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+/* ── product detail page wishlist button ───────────────────────────── */
+.sdl-wishlist-pdp-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 12px !important;
   cursor: pointer;
+  box-sizing: border-box !important;
 }
-.sdl-wishlist-pdp-label {
-  font-size: 14px;
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.sdl-wishlist-pdp-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1;
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0 !important;
 }
-.sdl-wishlist-heart-pdp .sdl-wishlist-heart { background: none !important; padding: 0; box-shadow: none !important; border-radius: 0; }
+.sdl-wishlist-pdp-icon svg {
+  width: 18px !important;
+  height: 18px !important;
+}
 
 /* ── header icon ───────────────────────────────────────────────────── */
 .sdl-wishlist-header-icon {
@@ -77,21 +85,23 @@
   text-decoration: none;
 }
 .sdl-wishlist-header-icon svg { display: block; }
+.sdl-wishlist-header-text {
+  font-size: inherit;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.sdl-wishlist-header-label {
+  font-size: inherit;
+  color: inherit;
+}
 .sdl-wishlist-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  background: #e74c3c;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
+  position: static;
+  display: inline;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  margin-left: 4px;
   line-height: 1;
 }
 

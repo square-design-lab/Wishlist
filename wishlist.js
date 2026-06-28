@@ -23,6 +23,8 @@
     wishlistTitle: "WISHLIST",
     headerIcon: true,
     headerIconPosition: "before-cart",
+    headerIconType: "text",
+    headerIconText: "Wishlist",
     fieldName: "Wishlist",
     includePrices: true,
     includeProductUrl: true,
@@ -242,11 +244,11 @@
     });
   }
 
-  /* ── product detail page: heart button ──────────────────────────── */
+  /* ── product detail page: wishlist button ────────────────────────── */
   function setupProductPageHeart() {
     if (!cfg("showOnProductPage")) return;
     if (!isProductPage()) return;
-    if (document.querySelector(".sdl-wishlist-heart-pdp")) return;
+    if (document.querySelector(".sdl-wishlist-pdp-btn")) return;
 
     var titleEl = document.querySelector(".ProductItem-details-title, .product-title, h1.pdp-product-title");
     var title = titleEl ? titleEl.innerText.trim() : "";
@@ -259,60 +261,69 @@
 
     var url = window.location.origin + window.location.pathname;
 
-    var controlsRow = document.querySelector(".product-purchase-controls-wrapper");
-    if (!controlsRow) controlsRow = document.querySelector(".product-add-to-cart-layout-wrapper");
-    var insertTarget = controlsRow ? controlsRow.parentElement : null;
-    if (!insertTarget) {
-      var addBtn = document.querySelector(S.addToCartBtn);
-      insertTarget = addBtn ? addBtn.parentElement : null;
+    var layoutWrapper = document.querySelector(".product-add-to-cart-layout-wrapper");
+    if (!layoutWrapper) {
+      var controlsRow = document.querySelector(".product-purchase-controls-wrapper");
+      layoutWrapper = controlsRow || null;
     }
-    if (!insertTarget) return;
+    if (!layoutWrapper) {
+      var addBtn = document.querySelector(S.addToCartBtn);
+      layoutWrapper = addBtn ? addBtn.closest(".product-add-to-cart-layout-wrapper, .product-purchase-controls-wrapper") || addBtn.parentElement : null;
+    }
+    if (!layoutWrapper) return;
 
-    var wrapper = document.createElement("div");
-    wrapper.className = "sdl-wishlist-heart-pdp";
+    var inWishlist = isInWishlist(url);
+    var pdpBtn = document.createElement("button");
+    pdpBtn.className = "sdl-wishlist-pdp-btn sqs-button-element--secondary";
+    pdpBtn.type = "button";
 
-    var btn = createHeartBtn(url, 24);
-    btn.setAttribute("data-url", url);
+    function updatePdpBtn(active) {
+      var icon = active ? HEART_FILLED : HEART_OUTLINE;
+      var text = active ? "In Wishlist" : "Add to Wishlist";
+      pdpBtn.innerHTML = '<span class="sdl-wishlist-pdp-icon" style="color:' + (active ? cfg("heartColor") : "currentColor") + '">' + icon + '</span> ' + text;
+    }
 
-    var label = document.createElement("span");
-    label.className = "sdl-wishlist-pdp-label";
-    label.textContent = isInWishlist(url) ? "Remove from Wishlist" : "Add to Wishlist";
+    updatePdpBtn(inWishlist);
 
-    btn.addEventListener("click", function (e) {
+    pdpBtn.addEventListener("click", function (e) {
       e.preventDefault();
       var sel = getSelectedVariants();
       var data = { url: url, title: title, price: price, image: image };
       if (sel.variants.length > 0) data.variants = sel.variants;
       if (sel.quantity > 1) data.quantity = sel.quantity;
       var added = toggleWishlist(data);
-      updateHeartState(btn, url);
-      label.textContent = added ? "Remove from Wishlist" : "Add to Wishlist";
+      updatePdpBtn(added);
     });
 
-    wrapper.appendChild(btn);
-    wrapper.appendChild(label);
-
-    if (controlsRow && controlsRow.parentElement) {
-      controlsRow.parentElement.insertBefore(wrapper, controlsRow.nextSibling);
-    } else {
-      insertTarget.appendChild(wrapper);
-    }
+    layoutWrapper.parentElement.insertBefore(pdpBtn, layoutWrapper.nextSibling);
   }
 
-  /* ── header icon with badge ─────────────────────────────────────── */
+  /* ── header icon / text link ─────────────────────────────────────── */
   function createHeaderIconEl() {
     var container = document.createElement("a");
     container.className = "sdl-wishlist-header-icon";
     container.href = cfg("wishlistPageSlug");
     container.setAttribute("aria-label", "Wishlist");
-    container.innerHTML = HEART_OUTLINE;
-    var svg = container.querySelector("svg");
-    svg.style.width = "20px";
-    svg.style.height = "20px";
-    var badge = document.createElement("span");
-    badge.className = "sdl-wishlist-badge";
-    badge.textContent = "0";
-    container.appendChild(badge);
+
+    var count = getWishlist().length;
+
+    if (cfg("headerIconType") === "icon") {
+      container.innerHTML = HEART_OUTLINE;
+      var svg = container.querySelector("svg");
+      svg.style.width = "20px";
+      svg.style.height = "20px";
+      var badge = document.createElement("span");
+      badge.className = "sdl-wishlist-badge";
+      badge.textContent = count;
+      container.appendChild(badge);
+    } else {
+      container.classList.add("sdl-wishlist-header-text");
+      var textSpan = document.createElement("span");
+      textSpan.className = "sdl-wishlist-header-label";
+      textSpan.textContent = cfg("headerIconText") + " (" + count + ")";
+      container.appendChild(textSpan);
+    }
+
     return container;
   }
 
@@ -332,12 +343,23 @@
   function setupHeaderIcon() {
     if (!cfg("headerIcon")) return;
 
-    var actionsRight = document.querySelector(".header-actions--right");
-    if (actionsRight) {
-      var desktopWrap = actionsRight.querySelector(".showOnDesktop");
-      var mobileWrap = actionsRight.querySelector(".showOnMobile");
-      insertIconIntoWrap(desktopWrap);
-      insertIconIntoWrap(mobileWrap);
+    var desktopDisplay = document.querySelector(".header-display-desktop");
+    var mobileDisplay = document.querySelector(".header-display-mobile");
+
+    if (desktopDisplay) {
+      var desktopActions = desktopDisplay.querySelector(".header-actions--right");
+      if (desktopActions) {
+        var desktopWrap = desktopActions.querySelector(".showOnDesktop");
+        insertIconIntoWrap(desktopWrap);
+      }
+    }
+
+    if (mobileDisplay) {
+      var mobileActions = mobileDisplay.querySelector(".header-actions--right");
+      if (mobileActions) {
+        var mobileWrap = mobileActions.querySelector(".showOnMobile");
+        insertIconIntoWrap(mobileWrap);
+      }
     }
 
     if (!document.querySelector(".sdl-wishlist-header-icon")) {
@@ -364,11 +386,15 @@
   }
 
   function updateHeaderBadge() {
-    var badges = document.querySelectorAll(".sdl-wishlist-badge");
     var count = getWishlist().length;
-    badges.forEach(function (badge) {
+
+    document.querySelectorAll(".sdl-wishlist-badge").forEach(function (badge) {
       badge.textContent = count;
       badge.style.display = count > 0 ? "flex" : "none";
+    });
+
+    document.querySelectorAll(".sdl-wishlist-header-label").forEach(function (label) {
+      label.textContent = cfg("headerIconText") + " (" + count + ")";
     });
   }
 

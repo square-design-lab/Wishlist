@@ -530,9 +530,14 @@ body {
       </button>
       <div class="section-content">
         <div class="field">
+          <label>Form Page URL</label>
+          <input type="text" id="formPageUrl" value="" placeholder="/wishlist-form" onchange="update()" />
+          <div class="hint">URL of a page containing your enquiry form. The form will open in a popup. Leave empty to use the footer lightbox approach instead.</div>
+        </div>
+        <div class="field">
           <label>Form Field Name</label>
           <input type="text" id="fieldName" value="Wishlist" onchange="update()" />
-          <div class="hint">Must match the textarea label in your Squarespace form block.</div>
+          <div class="hint">Must match the textarea label in your form block.</div>
         </div>
         <div class="toggle-row">
           <label>Include prices in form</label>
@@ -717,8 +722,8 @@ body {
           <p>In Squarespace, go to <strong>Pages → + → Blank Page</strong>. Set the URL slug to <code>/wishlist</code> (or your chosen slug). Add a <strong>Code Block</strong> to the page — the plugin will inject the wishlist content inside it.</p>
         </div>
         <div class="guide-step">
-          <h3><span class="step-num">2</span> Add a Form Block</h3>
-          <p>Add a <strong>Form Block</strong> to your site footer (so it's available on all pages). Add a <strong>textarea</strong> field and set its label to match the <em>Form Field Name</em> in your config (default: <code>Wishlist</code>). Set the form to open in a <strong>Lightbox</strong>. The plugin will auto-fill this field when users click "Send Wishlist".</p>
+          <h3><span class="step-num">2</span> Add a Form</h3>
+          <p>Create a new page (e.g. <code>/wishlist-form</code>) and add a <strong>Form Block</strong> to it. Add a <strong>textarea</strong> field with its label matching the <em>Form Field Name</em> in your config (default: <code>Wishlist</code>). Then enter the page URL in the <em>Form Page URL</em> setting. When users click "Send Wishlist", the form loads in a popup — no footer lightbox needed. <em>Alternatively</em>, leave Form Page URL empty and add the form to your site footer as a lightbox (legacy approach).</p>
         </div>
         <div class="guide-step">
           <h3><span class="step-num">3</span> Configure the Plugin</h3>
@@ -860,6 +865,7 @@ function generateCode() {
     { key: 'headerIconType', id: 'headerIconType', def: 'icon' },
     { key: 'headerIconText', id: 'headerIconText', def: 'Wishlist' },
     { key: 'headerIconPosition', id: 'headerIconPosition', def: 'before-cart' },
+    { key: 'formPageUrl', id: 'formPageUrl', def: '' },
     { key: 'fieldName', id: 'fieldName', def: 'Wishlist' },
     { key: 'includePrices', id: 'includePrices', toggle: true, def: true },
     { key: 'includeProductUrl', id: 'includeProductUrl', toggle: true, def: true },
